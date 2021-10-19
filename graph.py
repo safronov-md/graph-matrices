@@ -16,6 +16,7 @@ def inputGraphParams() -> list:
 def adjacencyTable(graph: list)->list:
     '''
     Заполняем таблицу смежности графа, вводя связи в алгебраическом виде
+    Параметр "graph" - должен быть пустой матрицей смежности обрабатываемого графа
     '''
     status = True
     i: int
@@ -41,13 +42,20 @@ def showGraph(graph: list)->None:
 def adjToKirgof(graph: list)->list:
     '''
     Конвертируем матрицу смежности в матрицу киргофа
+    Параметр "graph" - должен быть заполненной матрицей смежности!
     '''
     for i in range(len(graph)):
         graph[i] = [0-_ if _==1 else 0 for _ in graph[i]]
         graph[i][i] = graph[i].count(-1)
     return graph
 
-def kirgofToIncident(graph: list, incidentMatrix: list) ->list:
+def kirchoffToIncident(graph: list, incidentMatrix: list) ->list:
+    """
+    Конвертируем матрицу киргофа а матрицу инцидентности
+    Параметры: 
+    "graph" - Должен быть заполненной матрицей Киргофа
+    "incidentMatrix" - Должен быть пустой матрицей инцидентности!
+    """
     counter = 0
     for i in range(len(graph)):
         for j in range(len(graph[i])):
@@ -56,14 +64,40 @@ def kirgofToIncident(graph: list, incidentMatrix: list) ->list:
         counter+=1 if counter< len(incidentMatrix[0])-1 else 0
     return incidentMatrix
 
-graf,incidentMatrix = inputGraphParams()
+def dfs(adjMatrix: list, start: int)-> None:
+    """
+    Итеративный обход графа в глубину
+    """
+    graph = [list() for _ in adjMatrix] # Creating list with graph's node's connections
+    visited = [False for _ in adjMatrix] # Creating visited list if None
+    stack = [start]
+    for i in range(len(adjMatrix)):
+        for j in range(len(adjMatrix)):
+            if adjMatrix[i][j] == 1:
+                graph[i].append(j) # Filling nodes connections list
+    counter = 0
+    while len(stack):
+        counter+=1
+        start = stack.pop() # Getting last element and remove it from list
+        print(f'DFS LOG[{counter}]: Visited befor condition: {visited}')
+        if not visited[start]: # If Node wasn't visited yet, visit it
+            print(f'DFS[{counter}]: {start+1}')
+            visited[start] = True
+        print(f'DFS LOG[{counter}]: Visited after condition: {visited}')
+        for node in graph[start]: # Collecting connections from node
+            if not visited[node]:
+                stack.append(node)
+        print(f'DFS LOG[{counter}]: New stack: {stack}')
+
+adjMatrix,incidentMatrix = inputGraphParams()
 print('Nulled adjacency table:')
-showGraph(graf)
-graf = adjacencyTable(graf)
+showGraph(adjMatrix)
+adjMatrix = adjacencyTable(adjMatrix)
 print('Filled adjacency table:')
-showGraph(graf)
-graf = adjToKirgof(graf)
-print('Adjacency table -> Kirgof matrix:')
-showGraph(graf)
-print('Kirgof matrix -> Incident matrix')
-showGraph(kirgofToIncident(graf, incidentMatrix))
+showGraph(adjMatrix)
+kirchoffMatrix = adjToKirgof(adjMatrix.copy())
+print('Adjacency table -> Kirchoff matrix:')
+showGraph(kirchoffMatrix)
+print('Kirchoff matrix -> Incident matrix')
+showGraph(kirchoffToIncident(kirchoffMatrix, incidentMatrix))
+dfs(adjMatrix,0)
